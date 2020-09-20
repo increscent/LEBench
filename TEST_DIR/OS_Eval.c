@@ -889,7 +889,7 @@ void context_switch_test(struct timespec *diffTime) {
 
 int msg_size = -1;
 int curr_iter_limit = -1;
-#define sock "TEST_DIR/socket"
+#define sock "/users/rjava/LEBench/TEST_DIR/socket"
 void send_test(struct timespec *timeArray, int iter, int *i) {
 	int retval;
 	int fds1[2], fds2[2];
@@ -902,8 +902,9 @@ void send_test(struct timespec *timeArray, int iter, int *i) {
 	struct sockaddr_un server_addr;
 	memset(&server_addr, 0, sizeof(struct sockaddr_un));
 	server_addr.sun_family = AF_UNIX;
-	strcpy(server_addr.sun_path, home); 
-	strcat(server_addr.sun_path, sock); 
+//	strcpy(server_addr.sun_path, home); 
+	remove(sock);
+	strcpy(server_addr.sun_path, sock); 
 
 	int forkId = fork();
 
@@ -927,15 +928,18 @@ void send_test(struct timespec *timeArray, int iter, int *i) {
 		retval = listen(fd_server, 10); 
 		if (retval == -1) printf("[error] failed to listen.\n");
 		if (DEBUG) printf("Waiting for connection\n");
+		printf("Waiting for connection\n");
 
 		write(fds1[1], &w, 1);
 
 		int fd_connect = accept(fd_server, (struct sockaddr *) &client_addr, &client_addr_len);
 		if (DEBUG) printf("Connection accepted.\n");
+		printf("Connection accepted.\n");
 
 		read(fds2[0], &r, 1);
 
-		remove(sock);
+		// bug
+//		remove(sock);
 		close(fd_server);
 		close(fd_connect);
 		close(fds1[1]);
@@ -1003,7 +1007,8 @@ void recv_test(struct timespec *timeArray, int iter, int *i) {
 	struct sockaddr_un server_addr;
 	memset(&server_addr, 0, sizeof(struct sockaddr_un));
 	server_addr.sun_family = AF_UNIX;
-	strncpy(server_addr.sun_path, sock, sizeof(server_addr.sun_path) - 1); 
+	remove(sock);
+	strcpy(server_addr.sun_path, sock); 
 
 	int forkId = fork();
 
@@ -1055,7 +1060,7 @@ void recv_test(struct timespec *timeArray, int iter, int *i) {
 
 		write(fds1[1], &w, 1);
 
-		remove(sock);
+//		remove(sock);
 		close(fd_server);
 		close(fd_connect);
 		close(fds1[1]);
@@ -1189,6 +1194,7 @@ int main(int argc, char *argv[])
 	printf("msg size: %d.\n", msg_size);
 	printf("curr iter limit: %d.\n", curr_iter_limit);
 	info.iter = BASE_ITER * 10;
+//	info.iter = 1;
 	info.name = "send";
 	one_line_test_v2(fp, copy, send_test, &info);
 	
@@ -1202,6 +1208,7 @@ int main(int argc, char *argv[])
 	printf("msg size: %d.\n", msg_size);
 	printf("curr iter limit: %d.\n", curr_iter_limit);
 	info.iter = BASE_ITER;
+//	info.iter = 1;
 	info.name = "big send";
 	one_line_test_v2(fp, copy, send_test, &info);
 		
